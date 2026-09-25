@@ -183,7 +183,7 @@
   <button id="beat" class="on" title="the heartbeat: pause or resume the motion (B)">heartbeat on</button>
   <button id="hoverctl" aria-pressed="false" title="show the details popup (H)">details off · H</button>
   <button id="soundbtn" title="the sky has a voice: ambience, hovers, zoomed regions (S)">sound off · S</button>
-  <button id="legendbtn" title="what everything means (L)">legend</button>
+  <button id="legendbtn" title="what everything means">legend</button>
   <button id="fs" title="fullscreen (F)">fullscreen</button>
   <button id="uibtn" title="fade the interface away, keep the sky (U)">hide UI · U</button>
 </div>
@@ -228,7 +228,7 @@
   <span><i style="color:#c96a6a">∼</i> <b style="color:#c96a6a">magellanic cloud</b> · the cloud-born</span>
   <span><i style="color:#e6dcff">◈</i> <b style="color:#e6dcff">essence</b> · halo colored by activity</span>
   <span><span class="sw" style="color:#c9b8ff">┈┈┈</span> <b style="color:#c9b8ff">tether</b> · essence &gt; planet &gt; missionary</span>
-  <span><span class="beam"></span> <b style="color:#e6dcff">energy line</b> · station &gt; missionary · hover an essence</span>
+  <span><span class="beam"></span> <b style="color:#e6dcff">energy line</b> · station &gt; missionary · breathes idle, burns on hover</span>
   <span><i style="color:#f4f7ff">◌</i> <b style="color:#f4f7ff">the Ingress</b> · where essences come from</span>
   <span><span class="sw" style="color:#5a6b8a">───</span> <b style="color:#5a6b8a">tailnet</b> · the actual network</span>
   <span><i style="color:#c8552e">●</i> <b style="color:#c8552e">RETRACE</b> · the ancestor</span>
@@ -1066,6 +1066,9 @@ function pollHeartbeats(){
   let changed=settlePresence();
   const done=()=>{ if(changed) needFrame=true; setTimeout(pollHeartbeats,HEARTBEAT_POLL_MS); };
   if(window.ORB_HEARTBEATS){ try{ changed=applyHeartbeats(window.ORB_HEARTBEATS)||changed; }catch(_){} done(); return; }
+  /* file:// can never fetch a sibling JSON: the browser blocks it under CORS
+     and logs a console error no catch can silence. skip the poll there. */
+  if(location.protocol==="file:"){ done(); return; }
   fetch(HEARTBEAT_URL,{cache:"no-store"}).then(r=>{ if(!r.ok) throw 0; return r.json(); })
     .then(j=>{ changed=applyHeartbeats(j&&j.heartbeats||j)||changed; })
     .catch(()=>{ /* no backend yet: the sky keeps the registry's word */ })
@@ -3220,14 +3223,20 @@ document.querySelectorAll("#dims button").forEach(b=>b.addEventListener("click",
   if(d==="where"){ setTab("home"); glideFit(); }
   b.classList.add("on"); setTimeout(()=>b.classList.remove("on"),1600);
   needFrame=true; }));
-const FILTERS=[["galaxy","Galaxies","#f0c26e"],["essence","Essences","#c9b8ff"],["project","Projects","#b9a7e6"],
+const FILTERS=[["galaxy","Galaxies","#f0c26e"],["essence","Essences · E","#c9b8ff"],["project","Projects","#b9a7e6"],
   ["capacity","Capacity","#8d8d99"],["deep","Deep field","#5c6675"],
-  ["possible","Possibilities",""],["quantum","Quantum links",""],["labels","Labels",""]];
+  ["possible","Possibilities",""],["quantum","Quantum links",""],["labels","Labels · L",""]];
+/* labels start dark: the sky arrives clean, L calls them in */
+const FILTER_OFF={labels:1};
 document.getElementById("filters").innerHTML=FILTERS.map(([k,label,c])=>
-  '<label><input type="checkbox" data-k="'+k+'" checked>'+
+  '<label><input type="checkbox" data-k="'+k+'"'+(FILTER_OFF[k]?"":" checked")+'>'+
   (c?'<span class="dot" style="background:'+c+'"></span><span style="color:'+c+'">'+label+"</span>":label)+"</label>").join("");
 document.querySelectorAll("#filters input").forEach(cb=>cb.addEventListener("change",()=>{
   visible[cb.dataset.k]=cb.checked; needFrame=true; }));
+/* the keys drive the same filters the checkboxes do, so the UI stays honest */
+function setFilter(k,on){ visible[k]=on;
+  const cb=document.querySelector('#filters input[data-k="'+k+'"]');
+  if(cb) cb.checked=on; needFrame=true; }
 const beatBtn=document.getElementById("beat");
 beatBtn.addEventListener("click",()=>{ heartbeat=!heartbeat;
   beatBtn.classList.toggle("on",heartbeat);
@@ -3447,7 +3456,8 @@ document.addEventListener("keydown",e=>{
   if(k==="f"&&plain) fsBtn.click();
   if(k==="h"&&plain){ if(!SAVER){ e.preventDefault(); setHoverEnabled(!hoverEnabled); } }
   if(k==="u"&&plain){ if(!SAVER) setUiHidden(!document.body.classList.contains("uihidden")); }
-  if(k==="l"&&plain){ if(!SAVER) legendBtn.click(); }
+  if(k==="l"&&plain){ if(!SAVER) setFilter("labels",!visible.labels); }
+  if(k==="e"&&plain){ if(!SAVER) setFilter("essence",!visible.essence); }
   if(k==="b"&&plain){ if(!SAVER) beatBtn.click(); }
   if(k==="t"&&plain){ if(!SAVER) tlToggle(); }
   if(k==="s"&&plain){ if(!SAVER) soundBtn.click(); }
@@ -3639,7 +3649,7 @@ function hover(e){
 
 /* ---------- view state: tabs, filters, controls ---------- */
 let tab="all";
-const visible={galaxy:true,project:true,platform:true,capacity:true,deep:true,possible:true,quantum:true,labels:true,essence:true};
+const visible={galaxy:true,project:true,platform:true,capacity:true,deep:true,possible:true,quantum:true,labels:false,essence:true};
 let heartbeat=true, needFrame=true;
 function dimFor(g){
   if(g==="platform") g="galaxy"; /* platforms are geography, like galaxies */
@@ -5026,8 +5036,16 @@ function frame(now){
          Sheldon is the player, not a deployed instance: his project
          connectivity runs cockpit > devices > projects, never direct
          essence > member lines. */
-      if((hot||webShow)&&ends.length&&e.hid!=="sheldon"){
-        ctx.globalAlpha=(hot?0.9:Math.min(1,dimFor("essence"))*0.75)*essenceGlow*dimF;
+      /* the member lines breathe on their own now: a faint idle glow with a
+         light pulse, easing up to the full hovered burn slowly on hover */
+      const lineTgt=hot?1:(webShow?0.85:0.16);
+      const lineCur=(e._lineGlow==null)?0.16:e._lineGlow;
+      const lineRate=lineTgt>lineCur?1.4:2.2; /* slow in, gentle out */
+      e._lineGlow=lineCur+(lineTgt-lineCur)*(1-Math.exp(-dt*lineRate));
+      const lineW=ss(0.2,0.95,e._lineGlow); /* how hovered the lines feel */
+      if(e._lineGlow>0.01&&ends.length&&e.hid!=="sheldon"){
+        const fullA=hot?0.9:Math.min(1,dimFor("essence"))*0.75;
+        ctx.globalAlpha=(0.14+(fullA-0.14)*lineW)*essenceGlow*dimF;
         ctx.lineWidth=Math.max(0.75,cam.z*0.8);
         for(const s of systems){
           if(s.kind!=="project") continue;
@@ -5052,7 +5070,7 @@ function frame(now){
             /* on to the missionaries: the pulse walks rez > member */
             const pp=(((mt*0.125+e.pulse+0.5)%1)+1)%1;
             const qx=ne[0]+(b._sx-ne[0])*pp, qy=ne[1]+(b._sy-ne[1])*pp, qr=6*cam.z+3;
-            const qa=Math.sin(pp*Math.PI)*0.6*(hot?1:Math.min(1,dimFor("essence")));
+            const qa=Math.sin(pp*Math.PI)*0.6*(hot?1:Math.min(1,dimFor("essence")))*(0.3+0.7*lineW); /* lighter while idle */
             const pg=ctx.createRadialGradient(qx,qy,0,qx,qy,qr);
             pg.addColorStop(0,ergba(e.ecol,Math.min(1,qa)));
             pg.addColorStop(1,ergba(e.ecol,0));
