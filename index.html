@@ -39,7 +39,7 @@
   #legend .beam{display:inline-block;width:46px;height:3px;border-radius:2px;margin-right:8px;vertical-align:middle;
     background:linear-gradient(90deg,rgba(230,220,255,0),#e6dcff);}
   #legend span{break-inside:avoid;}
-  #tabs{position:fixed;top:78px;left:22px;z-index:6;display:flex;gap:6px;align-items:center;
+  #tabs{position:fixed;top:18px;left:22px;z-index:6;display:flex;gap:6px;align-items:center;
     color:#8a8fa0;font-size:11px;}
   #tabs button,#controls button,#zoomctl button,#dims button{background:#1b2230cc;
     border:1px solid #ffffff17;color:#dfe3ec;border-radius:9px;padding:6px 12px;
@@ -49,15 +49,15 @@
     border-color:#c8862a8c;background:#263042d9;}
   #tabs button.on,#controls button.on,#dims button.on{background:#c8862a29;border-color:#c8862a;
     color:#ffd9a0;box-shadow:0 0 14px #c8862a2e;}
-  #dims{position:fixed;top:110px;left:22px;z-index:6;display:flex;gap:6px;align-items:center;
+  #dims{position:fixed;top:50px;left:22px;z-index:6;display:flex;gap:6px;align-items:center;
     color:#8a8fa0;font-size:11px;}
-  #dimpanel{position:fixed;top:142px;left:22px;z-index:7;max-width:320px;background:#0d1119f2;
+  #dimpanel{position:fixed;top:114px;left:22px;z-index:7;max-width:320px;background:#0d1119f2;
     border:1px solid #2a2f3d;border-radius:10px;padding:12px 14px;color:#dfe3ec;font-size:12px;}
   #dimpanel h3{margin:0 0 8px;font-size:13px;font-weight:600;color:#fff;}
   #dimpanel .row{margin:5px 0;color:#aab0c0;line-height:1.5;}
   #dimpanel .row b{color:#dfe3ec;font-weight:600;}
   #dimpanel .x{float:right;cursor:pointer;color:#8a8fa0;border:none;background:none;font-size:13px;}
-  #filters{position:fixed;top:142px;left:22px;z-index:6;display:flex;gap:8px;flex-wrap:wrap;
+  #filters{position:fixed;top:82px;left:22px;z-index:6;display:flex;gap:8px;flex-wrap:wrap;
     max-width:64%;color:#8a8fa0;font-size:11px;}
   #filters label{display:flex;gap:5px;align-items:center;cursor:pointer;background:#10141dcc;
     border:1px solid #ffffff17;border-radius:9px;padding:5px 10px;
@@ -111,8 +111,37 @@
   body.opening header,body.opening footer,body.opening #tabs,
   body.opening #dims,body.opening #dimpanel,body.opening #filters,
   body.opening #controls,body.opening #zoomctl,body.opening #timeline,
-  body.opening #tlbtn,body.opening #legend,body.opening #uistats{
+  body.opening #tlbtn,body.opening #legend,body.opening #uistats,
+  body.opening #uibtn{
     opacity:0 !important;pointer-events:none;}
+  /* the emblem never hides with the chrome: it is the way back on touch,
+     where there is no U key. it only rests during the opening cinema. */
+  #uibtn{position:fixed;right:22px;bottom:18px;z-index:8;width:52px;height:52px;
+    border-radius:50%;background:#0d1119d9;border:1px solid #3a2f1c;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;
+    touch-action:manipulation;-webkit-tap-highlight-color:transparent;padding:0;
+    transition:opacity .9s ease,border-color .9s ease,box-shadow .9s ease;}
+  #uibtn:hover{border-color:#c8862a;box-shadow:0 0 14px #c8862a44;}
+  #uibtn:focus-visible{outline:2px solid #c8862a;outline-offset:3px;}
+  #uibtn svg{width:38px;height:38px;display:block;filter:drop-shadow(0 0 5px #c8862a44);}
+  body.uihidden #uibtn{opacity:.55;}
+  /* the invitation: until the first touch the emblem breathes a slow glow
+     and lets a spark glint off the north point now and then, a suggestion
+     of touch. once used, it retires the come-hither and rests calm. */
+  #uibtn.breathe{animation:emblem-breathe 5.5s ease-in-out infinite;}
+  @keyframes emblem-breathe{
+    0%,100%{box-shadow:0 0 6px #c8862a22;border-color:#3a2f1c;}
+    50%{box-shadow:0 0 18px #c8862a66;border-color:#8a6a2f;}}
+  #uibtn.breathe .spark{animation:emblem-spark 9s ease-in-out infinite;}
+  @keyframes emblem-spark{
+    0%,90%,100%{opacity:0;}
+    93.5%{opacity:.95;}
+    97%{opacity:0;}}
+  body.known #uibtn{animation:none;}
+  body.known #uibtn .spark{animation:none;opacity:0;}
+  @media (prefers-reduced-motion:reduce){
+    #uibtn.breathe,#uibtn.breathe .spark{animation:none !important;}
+    #uibtn .spark{opacity:0 !important;}}
   /* the super opener is a cinema: no cursor anywhere until the universe
      arrives. the opening class lifts when the scene stands, and the cursor
      comes back with it. */
@@ -185,7 +214,6 @@
   <button id="soundbtn" title="the sky has a voice: ambience, hovers, zoomed regions (S)">sound off · S</button>
   <button id="legendbtn" title="what everything means">legend</button>
   <button id="fs" title="fullscreen (F)">fullscreen</button>
-  <button id="uibtn" title="fade the interface away, keep the sky (U)">hide UI · U</button>
 </div>
 <div id="zoomctl">
   <button id="zout" title="zoom out (−)">−</button><span id="zpct">100%</span><button id="zin" title="zoom in (+)">+</button><button id="zreset" class="wide" title="reset view (0)">reset</button>
@@ -244,6 +272,31 @@
   <span>a stop on the time traveler's map · built 2026-09-19 20:46 CDT</span>
 </footer>
 <div id="uistats" aria-hidden="true"></div>
+<!-- the navigator's emblem: a brass compass rose engraved like a 19th-century
+     celestial chart, built for the far future. it never hides with the rest
+     of the chrome, so touch has a way back when there is no U key. -->
+<button id="uibtn" title="fade the interface away, keep the sky" aria-pressed="false" aria-label="toggle the interface">
+<svg viewBox="0 0 48 48" aria-hidden="true">
+  <circle cx="24" cy="24" r="21.5" fill="none" stroke="#8a6f3e" stroke-width="1" opacity=".85"/>
+  <circle cx="24" cy="24" r="18.5" fill="none" stroke="#a5854f" stroke-width="3" stroke-dasharray="0.9 1.037" opacity=".5"/>
+  <g fill="#e8c57c" opacity=".92">
+    <path d="M24 8.5 L26.1 21.9 L24 24 L21.9 21.9 Z"/>
+    <path d="M24 8.5 L26.1 21.9 L24 24 L21.9 21.9 Z" transform="rotate(90 24 24)"/>
+    <path d="M24 8.5 L26.1 21.9 L24 24 L21.9 21.9 Z" transform="rotate(180 24 24)"/>
+    <path d="M24 8.5 L26.1 21.9 L24 24 L21.9 21.9 Z" transform="rotate(270 24 24)"/>
+  </g>
+  <g fill="#c9a25a" opacity=".75">
+    <path d="M24 14.5 L25.1 22.6 L24 24 L22.9 22.6 Z" transform="rotate(45 24 24)"/>
+    <path d="M24 14.5 L25.1 22.6 L24 24 L22.9 22.6 Z" transform="rotate(135 24 24)"/>
+    <path d="M24 14.5 L25.1 22.6 L24 24 L22.9 22.6 Z" transform="rotate(225 24 24)"/>
+    <path d="M24 14.5 L25.1 22.6 L24 24 L22.9 22.6 Z" transform="rotate(315 24 24)"/>
+  </g>
+  <circle cx="24" cy="24" r="6.5" fill="none" stroke="#c9a25a" stroke-width="1" opacity=".8"/>
+  <circle cx="24" cy="24" r="2.1" fill="#ffe9ad"/>
+  <!-- the spark: a brief glint on the north point, inviting a touch -->
+  <path class="spark" d="M24 3.6 L24.8 6.6 L27.8 7.4 L24.8 8.2 L24 11.2 L23.2 8.2 L20.2 7.4 L23.2 6.6 Z" fill="#fff3d0" opacity="0"/>
+</svg>
+</button>
 <script>
 const VIEWS = {
 lineages: {
@@ -3399,17 +3452,21 @@ function universeCounts(){
 }
 function updateUistats(){
   const c=universeCounts(), a=(0.014+0.012*lastSwell).toFixed(3);
+  const back=matchMedia("(pointer:coarse)").matches?"tap the emblem to bring the ui back":"U brings the ui back";
   uiStats.textContent="universal · "+c.sys+" systems · "+c.bodies+" bodies · "+
-    c.ess+" essences · "+c.proj+" projects · 42 ✦ "+a+" · U brings the ui back";
+    c.ess+" essences · "+c.proj+" projects · 42 ✦ "+a+" · "+back;
 }
 function setUiHidden(h){
   document.body.classList.toggle("uihidden",h);
-  uiBtn.textContent=h?"show UI · U":"hide UI · U";
-  uiBtn.title=h?"bring the interface back (U)":"fade the interface away, keep the sky (U)";
+  uiBtn.classList.toggle("away",h);
+  uiBtn.setAttribute("aria-pressed",h?"true":"false");
+  uiBtn.title=h?"bring the interface back":"fade the interface away, keep the sky";
   if(h) updateUistats();
   needFrame=true;
 }
-uiBtn.addEventListener("click",()=>setUiHidden(!document.body.classList.contains("uihidden")));
+uiBtn.addEventListener("click",()=>{document.body.classList.add("known");
+  setUiHidden(!document.body.classList.contains("uihidden"));});
+uiBtn.classList.add("breathe");
 setInterval(()=>{ if(document.body.classList.contains("uihidden")&&
   !document.body.classList.contains("opening")) updateUistats(); },2000);
 /* the legend lives behind a button now, YouTube-style: a summary pill,
@@ -3455,7 +3512,8 @@ document.addEventListener("keydown",e=>{
     return; }
   if(k==="f"&&plain) fsBtn.click();
   if(k==="h"&&plain){ if(!SAVER){ e.preventDefault(); setHoverEnabled(!hoverEnabled); } }
-  if(k==="u"&&plain){ if(!SAVER) setUiHidden(!document.body.classList.contains("uihidden")); }
+  if(k==="u"&&plain){ if(!SAVER){ document.body.classList.add("known");
+    setUiHidden(!document.body.classList.contains("uihidden")); } }
   if(k==="l"&&plain){ if(!SAVER) setFilter("labels",!visible.labels); }
   if(k==="e"&&plain){ if(!SAVER) setFilter("essence",!visible.essence); }
   if(k==="b"&&plain){ if(!SAVER) beatBtn.click(); }
