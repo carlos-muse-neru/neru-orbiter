@@ -1169,6 +1169,9 @@ const TRAVELERS=[
  {id:"cape", name:"a caped superhero", blurb:"a superhero crossing the sky",
   glow:["#c2504a22","#c2504a00"], spin:false,
   bits:["#ffb3ab","#d6e4ff","#ffffff","#ff8f88"]},
+ {id:"ironman", name:"Iron Man", blurb:"knows what the suit can do before he needs it",
+  glow:["#b03a2e22","#b03a2e00"], spin:false,
+  bits:["#ffd166","#ff9f1c","#ffffff","#e63946"]},
  {id:"voyager", name:"Voyager", blurb:"just passing through",
   glow:["#d8c98f22","#d8c98f00"], spin:false, parked:true,
   bits:["#d8c98f","#fff3c4","#ffffff","#b8a86a"]}
@@ -1289,7 +1292,7 @@ function travelerTick(mdt){
     if(p>=1){ TRAVELER.mode="dwell"; TRAVELER.t=0; TRAVELER.bits=[]; }
   }
 }
-/* the six ships, drawn small and quiet in the sky's own vector style.
+/* the seven ships, drawn small and quiet in the sky's own vector style.
    each fits roughly the same w-by-h box the TARDIS always used.
    the Falcon, the Enterprise, and Voyager are parked for now. */
 /* v: welcome the next traveler. On the map and showing, she regenerates as
@@ -1518,6 +1521,43 @@ function drawCapeShape(px,py,w,h,z){
   ctx.beginPath(); ctx.moveTo(0.6*s,-1.4*s); ctx.lineTo(5.2*s,-2.6*s); ctx.stroke();
   ctx.lineCap="butt";
 }
+function drawIronManShape(px,py,w,h,z){
+  /* Iron Man crossing the sky: red and gold, one repulsor forward,
+     the arc reactor lit. He faces the way he flies. */
+  const s=Math.max(1,z);
+  ctx.translate(px,py+Math.sin(mt*3.4)*1.1*s);
+  /* torso: a red plate */
+  ctx.fillStyle="#a8231f";
+  const bw=3.0*s, bh=7.0*s;
+  ctx.beginPath();
+  if(ctx.roundRect) ctx.roundRect(-bw/2,-bh/2,bw,bh,bw/2.4);
+  else ctx.rect(-bw/2,-bh/2,bw,bh);
+  ctx.fill();
+  /* gold trim around the plate */
+  ctx.strokeStyle="#d8a13a"; ctx.lineWidth=Math.max(0.7,1.0*s);
+  ctx.beginPath();
+  if(ctx.roundRect) ctx.roundRect(-bw/2+0.5*s,-bh/2+0.5*s,bw-1.0*s,bh-1.0*s,bw/3);
+  else ctx.rect(-bw/2+0.5*s,-bh/2+0.5*s,bw-1.0*s,bh-1.0*s);
+  ctx.stroke();
+  /* the arc reactor */
+  ctx.fillStyle="#bfe9ff";
+  ctx.beginPath(); ctx.arc(0,-0.6*s,Math.max(0.8,1.15*s),0,7); ctx.fill();
+  ctx.fillStyle="#ffffff";
+  ctx.beginPath(); ctx.arc(0,-0.6*s,Math.max(0.4,0.55*s),0,7); ctx.fill();
+  /* helm: the gold faceplate, eyes lit */
+  ctx.fillStyle="#d8a13a";
+  ctx.beginPath(); ctx.arc(0.3*s,-bh/2-1.7*s,Math.max(0.9,1.6*s),0,7); ctx.fill();
+  ctx.fillStyle="#7ec8f7";
+  ctx.fillRect(-0.5*s,-bh/2-2.1*s,1.6*s,Math.max(0.4,0.5*s));
+  /* the forward arm, repulsor lit */
+  ctx.strokeStyle="#a8231f"; ctx.lineWidth=Math.max(1,1.6*s); ctx.lineCap="round";
+  ctx.beginPath(); ctx.moveTo(0.7*s,-1.2*s); ctx.lineTo(5.4*s,-2.4*s); ctx.stroke();
+  const rg=ctx.createRadialGradient(5.4*s,-2.4*s,0,5.4*s,-2.4*s,3.2*s);
+  rg.addColorStop(0,"#ffffff"); rg.addColorStop(0.4,"#bfe9ff"); rg.addColorStop(1,"#7ec8f700");
+  ctx.fillStyle=rg;
+  ctx.beginPath(); ctx.arc(5.4*s,-2.4*s,3.2*s,0,7); ctx.fill();
+  ctx.lineCap="butt";
+}
 function drawVoyagerShape(px,py,w,h,z){
   /* Voyager, just passing through: the great white ear tipped homeward,
      the golden bus, the long magnetometer whip trailing, RTGs on their boom */
@@ -1607,14 +1647,15 @@ function drawTraveler(){
   /* the TARDIS turns on her vertical axis while traveling: the box goes
      edge-on twice a revolution, the lamp riding the center */
   const sp=(K.spin&&TRAVELER.mode==="away")?Math.cos(TRAVELER.spinA):1;
-  /* the superhero faces the way he flies: mirror the drawing when the leg runs west */
-  const mface=(K.id==="cape")?TRAVELER.face:1;
+  /* the flyers face the way they fly: mirror the drawing when the leg runs west */
+  const mface=(K.id==="cape"||K.id==="ironman")?TRAVELER.face:1;
   ctx.translate(px,py); ctx.scale(sp*mface,1); ctx.translate(-px,-py);
   if(K.id==="tardis") drawTardisShape(px,py,w,h,z);
   else if(K.id==="hailmary"){ drawHailMaryShape(px,py,w,h,z); drawRocky(px,py,w,h,z); }
   else if(K.id==="falcon") drawFalconShape(px,py,w,h,z);
   else if(K.id==="enterprise") drawEnterpriseShape(px,py,w,h,z);
   else if(K.id==="cape") drawCapeShape(px,py,w,h,z);
+  else if(K.id==="ironman") drawIronManShape(px,py,w,h,z);
   else drawVoyagerShape(px,py,w,h,z);
   ctx.restore();
 }
