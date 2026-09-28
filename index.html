@@ -1522,11 +1522,12 @@ function drawCapeShape(px,py,w,h,z){
   ctx.lineCap="butt";
 }
 function drawIronManShape(px,py,w,h,z){
-  /* Iron Man crossing the sky: red armor first, gold only as trim and
-     faceplate, the arc reactor lit on his chest, one repulsor forward,
-     boot thrusters burning. He faces the way he flies. */
+  /* Iron Man in flight: leaned into the wind like the superhero, palms down
+     with the repulsors giving lift, boot thrusters burning. The repulsors
+     are not always out front, so no trophy ball. He faces the way he flies. */
   const s=Math.max(1,z);
   ctx.translate(px,py+Math.sin(mt*3.4)*1.1*s);
+  ctx.rotate(0.42); /* the lean into the direction he is headed */
   /* torso: a red plate with thin gold trim */
   ctx.fillStyle="#a8231f";
   const bw=3.4*s, bh=7.4*s;
@@ -1553,13 +1554,18 @@ function drawIronManShape(px,py,w,h,z){
   ctx.beginPath(); ctx.arc(0.75*s,-bh/2-1.6*s,Math.max(0.7,1.15*s),-1.2,1.2); ctx.fill();
   ctx.fillStyle="#bfe9ff";
   ctx.fillRect(0.35*s,-bh/2-2.0*s,1.3*s,Math.max(0.35,0.45*s));
-  /* the forward arm, repulsor lit */
-  ctx.strokeStyle="#a8231f"; ctx.lineWidth=Math.max(1,1.6*s); ctx.lineCap="round";
-  ctx.beginPath(); ctx.moveTo(0.7*s,-1.2*s); ctx.lineTo(5.4*s,-2.4*s); ctx.stroke();
-  const rg=ctx.createRadialGradient(5.4*s,-2.4*s,0,5.4*s,-2.4*s,3.2*s);
-  rg.addColorStop(0,"#ffffff"); rg.addColorStop(0.4,"#bfe9ff"); rg.addColorStop(1,"#7ec8f700");
-  ctx.fillStyle=rg;
-  ctx.beginPath(); ctx.arc(5.4*s,-2.4*s,3.2*s,0,7); ctx.fill();
+  /* arms swept back at his sides, palms down: the repulsors give lift */
+  ctx.strokeStyle="#a8231f"; ctx.lineWidth=Math.max(1,1.5*s); ctx.lineCap="round";
+  for(const side of [-1,1]){
+    ctx.beginPath();
+    ctx.moveTo(side*1.5*s,-1.8*s);
+    ctx.lineTo(side*2.0*s,2.8*s);
+    ctx.stroke();
+    const pg=ctx.createRadialGradient(side*2.0*s,3.6*s,0,side*2.0*s,3.6*s,1.7*s);
+    pg.addColorStop(0,"#eaf7ff"); pg.addColorStop(0.5,"#9fd8ff"); pg.addColorStop(1,"#9fd8ff00");
+    ctx.fillStyle=pg;
+    ctx.beginPath(); ctx.arc(side*2.0*s,3.6*s,1.7*s,0,7); ctx.fill();
+  }
   /* boot thrusters: twin blue burns under the boots */
   for(const bx of [-1.0*s,1.0*s]){
     const bg=ctx.createRadialGradient(bx,bh/2+1.6*s,0,bx,bh/2+1.6*s,2.2*s);
