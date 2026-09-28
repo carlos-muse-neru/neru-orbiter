@@ -1522,33 +1522,37 @@ function drawCapeShape(px,py,w,h,z){
   ctx.lineCap="butt";
 }
 function drawIronManShape(px,py,w,h,z){
-  /* Iron Man crossing the sky: red and gold, one repulsor forward,
-     the arc reactor lit. He faces the way he flies. */
+  /* Iron Man crossing the sky: red armor first, gold only as trim and
+     faceplate, the arc reactor lit on his chest, one repulsor forward,
+     boot thrusters burning. He faces the way he flies. */
   const s=Math.max(1,z);
   ctx.translate(px,py+Math.sin(mt*3.4)*1.1*s);
-  /* torso: a red plate */
+  /* torso: a red plate with thin gold trim */
   ctx.fillStyle="#a8231f";
-  const bw=3.0*s, bh=7.0*s;
+  const bw=3.4*s, bh=7.4*s;
   ctx.beginPath();
   if(ctx.roundRect) ctx.roundRect(-bw/2,-bh/2,bw,bh,bw/2.4);
   else ctx.rect(-bw/2,-bh/2,bw,bh);
   ctx.fill();
-  /* gold trim around the plate */
-  ctx.strokeStyle="#d8a13a"; ctx.lineWidth=Math.max(0.7,1.0*s);
+  ctx.strokeStyle="#d8a13a"; ctx.lineWidth=Math.max(0.6,0.8*s);
   ctx.beginPath();
-  if(ctx.roundRect) ctx.roundRect(-bw/2+0.5*s,-bh/2+0.5*s,bw-1.0*s,bh-1.0*s,bw/3);
-  else ctx.rect(-bw/2+0.5*s,-bh/2+0.5*s,bw-1.0*s,bh-1.0*s);
+  if(ctx.roundRect) ctx.roundRect(-bw/2+0.6*s,-bh/2+0.6*s,bw-1.2*s,bh-1.2*s,bw/3);
+  else ctx.rect(-bw/2+0.6*s,-bh/2+0.6*s,bw-1.2*s,bh-1.2*s);
   ctx.stroke();
-  /* the arc reactor */
-  ctx.fillStyle="#bfe9ff";
-  ctx.beginPath(); ctx.arc(0,-0.6*s,Math.max(0.8,1.15*s),0,7); ctx.fill();
+  /* the arc reactor: a soft glow on the chest */
+  const ag=ctx.createRadialGradient(0,-0.6*s,0,0,-0.6*s,2.6*s);
+  ag.addColorStop(0,"#ffffff"); ag.addColorStop(0.35,"#bfe9ff"); ag.addColorStop(1,"#7ec8f700");
+  ctx.fillStyle=ag;
+  ctx.beginPath(); ctx.arc(0,-0.6*s,2.6*s,0,7); ctx.fill();
   ctx.fillStyle="#ffffff";
-  ctx.beginPath(); ctx.arc(0,-0.6*s,Math.max(0.4,0.55*s),0,7); ctx.fill();
-  /* helm: the gold faceplate, eyes lit */
+  ctx.beginPath(); ctx.arc(0,-0.6*s,Math.max(0.5,0.7*s),0,7); ctx.fill();
+  /* helm: red, with the gold faceplate and lit eyes */
+  ctx.fillStyle="#a8231f";
+  ctx.beginPath(); ctx.arc(0.3*s,-bh/2-1.7*s,Math.max(1.0,1.7*s),0,7); ctx.fill();
   ctx.fillStyle="#d8a13a";
-  ctx.beginPath(); ctx.arc(0.3*s,-bh/2-1.7*s,Math.max(0.9,1.6*s),0,7); ctx.fill();
-  ctx.fillStyle="#7ec8f7";
-  ctx.fillRect(-0.5*s,-bh/2-2.1*s,1.6*s,Math.max(0.4,0.5*s));
+  ctx.beginPath(); ctx.arc(0.75*s,-bh/2-1.6*s,Math.max(0.7,1.15*s),-1.2,1.2); ctx.fill();
+  ctx.fillStyle="#bfe9ff";
+  ctx.fillRect(0.35*s,-bh/2-2.0*s,1.3*s,Math.max(0.35,0.45*s));
   /* the forward arm, repulsor lit */
   ctx.strokeStyle="#a8231f"; ctx.lineWidth=Math.max(1,1.6*s); ctx.lineCap="round";
   ctx.beginPath(); ctx.moveTo(0.7*s,-1.2*s); ctx.lineTo(5.4*s,-2.4*s); ctx.stroke();
@@ -1556,6 +1560,13 @@ function drawIronManShape(px,py,w,h,z){
   rg.addColorStop(0,"#ffffff"); rg.addColorStop(0.4,"#bfe9ff"); rg.addColorStop(1,"#7ec8f700");
   ctx.fillStyle=rg;
   ctx.beginPath(); ctx.arc(5.4*s,-2.4*s,3.2*s,0,7); ctx.fill();
+  /* boot thrusters: twin blue burns under the boots */
+  for(const bx of [-1.0*s,1.0*s]){
+    const bg=ctx.createRadialGradient(bx,bh/2+1.6*s,0,bx,bh/2+1.6*s,2.2*s);
+    bg.addColorStop(0,"#eaf7ff"); bg.addColorStop(0.5,"#9fd8ff"); bg.addColorStop(1,"#9fd8ff00");
+    ctx.fillStyle=bg;
+    ctx.beginPath(); ctx.arc(bx,bh/2+1.6*s,2.2*s,0,7); ctx.fill();
+  }
   ctx.lineCap="butt";
 }
 function drawVoyagerShape(px,py,w,h,z){
